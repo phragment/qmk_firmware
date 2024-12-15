@@ -1,0 +1,13 @@
+
+// JP1 -> GP7 GP8
+// high -> left
+#define SPLIT_HAND_PIN GP8
+
+#define SERIAL_USART_FULL_DUPLEX
+#define SERIAL_USART_TX_PIN GP16
+#define SERIAL_USART_RX_PIN GP17
+
+#define SERIAL_USART_PIN_SWAP
+
+#define PS2_PIO_USE_PIO1
+
