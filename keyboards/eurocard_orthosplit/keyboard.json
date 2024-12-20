@@ -10,7 +10,7 @@
     "features": {
         "bootmagic": true,
         "command": false,
-        "console": false,
+        "console": true,
         "extrakey": true,
         "mousekey": true,
         "nkro": true
@@ -25,7 +25,6 @@
         "pid": "0x2342",
         "vid": "0xFEED"
     },
-
     "ps2": {
         "clock_pin": "GP12",
         "data_pin": "GP11",

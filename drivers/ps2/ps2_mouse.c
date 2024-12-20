@@ -71,6 +71,12 @@ __attribute__((weak)) void ps2_mouse_init_user(void) {}
 
 __attribute__((weak)) void ps2_mouse_moved_user(report_mouse_t *mouse_report) {}
 
+bool ps2_mouse_inhibited = false;
+void ps2_mouse_set_inhibit(bool inhibit) {
+  dprintf("ps2_mouse: inhibit = %d\n", inhibit);
+  ps2_mouse_inhibited = inhibit;
+}
+
 void ps2_mouse_task(void) {
     static uint8_t buttons_prev = 0;
     extern int     tp_buttons;
@@ -100,13 +106,26 @@ void ps2_mouse_task(void) {
         mouse_report.v       = -(ps2_host_recv_response() & PS2_MOUSE_SCROLL_MASK);
 #    endif
     } else {
-        if (debug_mouse) print("ps2_mouse: fail to get mouse packet\n");
+        //if (debug_mouse) print("ps2_mouse: fail to get mouse packet\n");
         /* return here to avoid updating the mouse button state */
-        return;
+        //return;
+
+        //mouse_report.buttons = 0;
+        //mouse_report.x       = 0;
+        //mouse_report.y       = 0;
+
+        ps2_mouse_clear_report(&mouse_report);
     }
 #endif
 
+    if (ps2_mouse_inhibited) {
+        dprintf("mouse msg ignored\n");
+        return;
+    }
+
+    // mouse buttons via matrix
     mouse_report.buttons |= tp_buttons;
+
     /* if mouse moves or buttons state changes */
     if (mouse_report.x || mouse_report.y || mouse_report.v || ((mouse_report.buttons ^ buttons_prev) & PS2_MOUSE_BTN_MASK)) {
 #ifdef PS2_MOUSE_DEBUG_RAW
@@ -126,9 +145,11 @@ void ps2_mouse_task(void) {
         ps2_mouse_print_report(&mouse_report);
 #endif
         host_mouse_send(&mouse_report);
+
+        ps2_mouse_clear_report(&mouse_report);
     }
 
-    ps2_mouse_clear_report(&mouse_report);
+    //ps2_mouse_clear_report(&mouse_report);
 }
 
 void ps2_mouse_disable_data_reporting(void) {
