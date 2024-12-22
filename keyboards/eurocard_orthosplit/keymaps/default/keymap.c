@@ -3,6 +3,13 @@
 
 #include QMK_KEYBOARD_H
 
+enum layer_names {
+    _BASE,
+    _FN,
+    _2ND
+};
+
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // row by row
   [0] = LAYOUT(
@@ -32,7 +39,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
       KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,
 
       KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,
-    RGB_MOD, RGB_VAI, RGB_VAD, RGB_RMOD,   KC_NO,   KC_NO,   KC_NO,
+      KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,
 
       KC_NO,   KC_NO,   KC_NO,   KC_NO,   TO(0),   TO(2),   KC_NO,
     KC_BTN4,   KC_NO, KC_BTN5,   KC_NO,   KC_NO,   KC_NO,   KC_NO
@@ -50,8 +57,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
       KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,
       KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,
 
-      KC_NO,   KC_NO,   KC_NO,   KC_NO,   TO(1), TO(0),  KC_NO,
-      KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,    KC_NO
+      KC_NO,   KC_NO,   KC_NO,   KC_NO,   TO(1),   TO(0),   KC_NO,
+      KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO
   )
 };
 
@@ -59,15 +66,15 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 #include "print.h"
 
 const rgblight_segment_t PROGMEM my_layer0_layer[] = RGBLIGHT_LAYER_SEGMENTS(
-    {1, 1, HSV_BLUE}
+    {0, 1, HSV_GREEN}
 );
 
 const rgblight_segment_t PROGMEM my_layer1_layer[] = RGBLIGHT_LAYER_SEGMENTS(
-    {1, 1, HSV_CYAN}
+    {0, 1, HSV_BLUE}
 );
 
 const rgblight_segment_t PROGMEM my_layer2_layer[] = RGBLIGHT_LAYER_SEGMENTS(
-    {1, 1, HSV_PURPLE}
+    {0, 1, HSV_RED}
 );
 
 const rgblight_segment_t* const PROGMEM my_rgb_layers[] = RGBLIGHT_LAYERS_LIST(
@@ -76,33 +83,16 @@ const rgblight_segment_t* const PROGMEM my_rgb_layers[] = RGBLIGHT_LAYERS_LIST(
     my_layer2_layer
 );
 
+layer_state_t default_layer_state_set_user(layer_state_t state) {
+    rgblight_set_layer_state(0, layer_state_cmp(state, _BASE));
+    return state;
+}
+
 layer_state_t layer_state_set_user(layer_state_t state) {
     dprintf("layer_state_set_user, state %d\n", state);
-    //uprintf("layer_state_set_user, state %d\n", state);
-
-    //rgblight_set_layer_state(0, 0);
-    //rgblight_set_layer_state(1, 0);
-    //rgblight_set_layer_state(2, 0);
-
-    switch(state) {
-      case 1:
-        //rgblight_set_layer_state(0, 1);
-        rgblight_sethsv_noeeprom(HSV_BLUE);
-        break;
-      case 2:
-        //rgblight_set_layer_state(1, 1);
-        rgblight_sethsv_noeeprom(HSV_GREEN);
-        break;
-      case 4:
-        //rgblight_set_layer_state(2, 1);
-        rgblight_sethsv_noeeprom(HSV_RED);
-        break;
-    }
-/*
-    rgblight_set_layer_state(0, layer_state_cmp(state, 0));
-    rgblight_set_layer_state(1, layer_state_cmp(state, 1));
-    rgblight_set_layer_state(2, layer_state_cmp(state, 2));
-*/
+    rgblight_set_layer_state(0, layer_state_cmp(state, _BASE));
+    rgblight_set_layer_state(1, layer_state_cmp(state, _FN));
+    rgblight_set_layer_state(2, layer_state_cmp(state, _2ND));
     return state;
 }
 
@@ -137,7 +127,7 @@ void reset_trackpoint(void) {
   wait_ms(100);
   gpio_write_pin_low( PS2_RST_PIN );
 
-  defer_exec(1500, my_callback, NULL);
+  defer_exec(1200, my_callback, NULL);
 }
 
 void keyboard_post_init_user(void) {
@@ -155,8 +145,6 @@ void keyboard_post_init_user(void) {
   //
   gpio_write_pin_low( USR_LED_PIN );
 
-  //
-  rgblight_sethsv_noeeprom(HSV_BLUE);
 }
 
 
