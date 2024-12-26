@@ -9,10 +9,9 @@ enum layer_names {
     _2ND
 };
 
-
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // row by row
-  [0] = LAYOUT(
+  [_BASE] = LAYOUT(
      KC_GRV,    KC_1,    KC_2,    KC_3,    KC_4,    KC_5,    KC_6,
        KC_7,    KC_8,    KC_9,    KC_0, KC_MINS,  KC_EQL, KC_BSPC,
 
@@ -28,7 +27,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_LCTL, KC_LGUI, KC_LALT,   MO(1),   TO(2),   TO(1),  KC_SPC,
     KC_BTN1, KC_BTN3, KC_BTN2,   KC_NO, KC_RALT,  KC_APP, RGB_TOG
   ),
-  [1] = LAYOUT(
+  [_FN] = LAYOUT(
       KC_NO,   KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,
       KC_F7,   KC_F8,   KC_F9,  KC_F10,  KC_F11,  KC_F12,  KC_DEL,
 
@@ -44,7 +43,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
       KC_NO,   KC_NO,   KC_NO,   KC_NO,   TO(0),   TO(2),   KC_NO,
     KC_BTN4,   KC_NO, KC_BTN5,   KC_NO,   KC_NO,   KC_NO,   KC_NO
   ),
-  [2] = LAYOUT(
+  [_2ND] = LAYOUT(
       KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,
       KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,  KC_NO,   KC_NO,
 
@@ -98,8 +97,28 @@ layer_state_t layer_state_set_user(layer_state_t state) {
 
 #include "ps2_mouse.h"
 
-void keyboard_pre_init_user(void) {
+uint32_t my_callback2(uint32_t trigger_time, void *cb_arg) {
+  ps2_mouse_set_inhibit(false);
+  return 0;
+}
+
+uint32_t my_callback1(uint32_t trigger_time, void *cb_arg) {
+  gpio_write_pin_low( PS2_RST_PIN );
+  defer_exec(1500, my_callback2, NULL);
+  return 0;
+}
+
+// well defined reset
+void reset_trackpoint(void) {
   ps2_mouse_set_inhibit(true);
+  gpio_set_pin_output( PS2_RST_PIN );
+  gpio_write_pin_high( PS2_RST_PIN );
+  defer_exec(500, my_callback1, NULL);
+}
+
+void keyboard_pre_init_user(void) {
+  //ps2_mouse_set_inhibit(true);
+  reset_trackpoint();
 
   //
   gpio_set_pin_output( SPLIT_HAND_PIN_ );
@@ -114,22 +133,6 @@ void keyboard_pre_init_user(void) {
   gpio_write_pin_high( USR_LED_PIN );
 }
 
-uint32_t my_callback(uint32_t trigger_time, void *cb_arg) {
-  ps2_mouse_set_inhibit(false);
-  return 0;
-}
-
-// https://docs.qmk.fm/drivers/gpio
-// reset trackpoint
-void reset_trackpoint(void) {
-  gpio_set_pin_output( PS2_RST_PIN );
-  gpio_write_pin_high( PS2_RST_PIN );
-  wait_ms(100);
-  gpio_write_pin_low( PS2_RST_PIN );
-
-  defer_exec(1200, my_callback, NULL);
-}
-
 void keyboard_post_init_user(void) {
   debug_enable = true;
   //debug_matrix = true;
@@ -140,26 +143,8 @@ void keyboard_post_init_user(void) {
   rgblight_layers = my_rgb_layers;
 
   //
-  reset_trackpoint();
+  //reset_trackpoint();
 
   //
   gpio_write_pin_low( USR_LED_PIN );
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
