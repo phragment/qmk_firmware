@@ -5,7 +5,7 @@
 // WS2812   GP23
 
 // JP1 -> GP7 GP8
-// high -> left
+// high (bridged) -> left
 #define SPLIT_HAND_PIN GP8
 #define SPLIT_HAND_PIN_ GP7
 
@@ -28,7 +28,7 @@
 
 // trackpoint, PIO1
 #define PS2_PIO_USE_PIO1
-#define PS2_MOUSE_DEBUG_RAW
+//#define PS2_MOUSE_DEBUG_RAW
 #define PS2_MOUSE_DEBUG_HID
 
 // indicator led
